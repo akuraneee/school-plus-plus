@@ -1,0 +1,12 @@
+{
+  "name": "schools-plus-plus",
+  "private": true,
+  "description": "Статистика оценок для дневника schools.by",
+  "scripts": {
+    "build": "python3 build.py",
+    "test": "node test/run.js && python3 build.py && node test/userscript.js"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.3"
+  }
+}

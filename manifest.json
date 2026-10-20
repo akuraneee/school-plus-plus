@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Schools++ — статистика оценок",
+  "short_name": "Schools++",
+  "version": "0.1.0",
+  "description": "Средние баллы, четвертные и годовые отметки (точные и округлённые), динамика и статистика для дневника schools.by",
+  "permissions": ["storage"],
+  "host_permissions": ["*://*.schools.by/*"],
+  "content_scripts": [
+    {
+      "matches": ["*://*.schools.by/*"],
+      "js": [
+        "src/utils.js",
+        "src/parser.js",
+        "src/crawler.js",
+        "src/stats.js",
+        "src/charts.js",
+        "src/ui-css.js",
+        "src/ui.js",
+        "src/content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "schools-plus-plus@local",
+      "strict_min_version": "115.0"
+    }
+  }
+}

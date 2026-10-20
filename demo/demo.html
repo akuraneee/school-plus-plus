@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><title>Schools++ демо</title>
+<style>body{font:14px system-ui;margin:0;padding:24px;background:#eef2f7}</style></head>
+<body>
+<p>Демо панели на выдуманных данных. Нажмите «Статистика» внизу справа.</p>
+<script src="../src/utils.js"></script><script src="../src/parser.js"></script><script src="../src/crawler.js"></script>
+<script src="../src/stats.js"></script><script src="../src/charts.js"></script><script src="../src/ui-css.js"></script>
+<script src="../src/ui.js"></script><script src="../test/mock.js"></script>
+<script>
+  const q = new URLSearchParams(location.search);
+  SPP.ui.init({ data: SPP.mockData(), today: SPP.MOCK_TODAY, open: true }).then(() => {
+    const tab = q.get('tab');
+    if (tab) document.getElementById('spp-host').shadowRoot.querySelector(`[data-key="${tab}"]`).click();
+  });
+</script>
+</body></html>
