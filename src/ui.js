@@ -325,9 +325,29 @@
     return h;
   }
 
+  // Тёмная тема сайта в Android-приложении: его обёртка ставит window.__sppApp и кладёт CSS в window.__sppDarkCss.
+  const inApp = () => typeof window.__sppApp === 'string' && typeof window.__sppDarkCss === 'string';
+  const siteDarkOn = () => !!document.getElementById('spp-dark');
+  function setSiteDark(on) {
+    try { localStorage.setItem('spp:siteDark', on ? '1' : '0'); } catch { /* нет */ }
+    const el = document.getElementById('spp-dark');
+    if (!on && el) el.remove();
+    if (on && !el) {
+      const st = document.createElement('style');
+      st.id = 'spp-dark';
+      st.textContent = window.__sppDarkCss;
+      (document.head || document.documentElement).appendChild(st);
+    }
+  }
+
   function renderSettings() {
     const d = S.data;
-    let h = '<h2>Округление</h2>';
+    let h = '';
+    if (inApp()) {
+      h += '<h2>Оформление</h2><div class="form-row"><label><input type="checkbox" data-act="site-dark"' +
+        `${siteDarkOn() ? ' checked' : ''}> Тёмная тема сайта</label></div>`;
+    }
+    h += '<h2>Округление</h2>';
     h += `<div class="form-row"><label>Округлять вверх, если дробная часть ≥</label>` +
       `<input type="number" min="0.05" max="0.95" step="0.05" value="${S.settings.threshold}" data-act="threshold">` +
       '<span class="muted small">0,5: 7,50 → 8, 7,49 → 7</span></div>';
@@ -527,6 +547,7 @@
         S.open = false;
         openPanel();
       }
+      if (act === 'site-dark') setSiteDark(e.target.checked);
       if (act === 'threshold') {
         const v = parseFloat(String(e.target.value).replace(',', '.'));
         if (v > 0 && v < 1) {

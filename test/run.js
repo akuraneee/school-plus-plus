@@ -151,6 +151,24 @@ async function crawlTest() {
     const main = shadow.querySelector('main');
     ok(`tab ${tab} rendered`, main && main.dataset.tab === tab && main.innerHTML.length > 200 && !/undefined|NaN/.test(main.textContent));
   }
+  // Переключатель тёмной темы — только внутри Android-приложения
+  ok('нет переключателя вне приложения', !shadow.querySelector('[data-act="site-dark"]'));
+  uw.__sppApp = 'android';
+  uw.__sppDarkCss = 'body{filter:invert(1)}';
+  const st = uw.document.createElement('style');
+  st.id = 'spp-dark';
+  uw.document.head.appendChild(st);
+  shadow.querySelector('[data-act="tab"][data-key="overview"]').dispatchEvent(new uw.MouseEvent('click', { bubbles: true }));
+  shadow.querySelector('[data-act="tab"][data-key="settings"]').dispatchEvent(new uw.MouseEvent('click', { bubbles: true }));
+  const cb = shadow.querySelector('[data-act="site-dark"]');
+  ok('переключатель в приложении', cb && cb.checked);
+  cb.checked = false;
+  cb.dispatchEvent(new uw.Event('change', { bubbles: true }));
+  ok('тема выключена', !uw.document.getElementById('spp-dark') && uw.localStorage.getItem('spp:siteDark') === '0');
+  cb.checked = true;
+  cb.dispatchEvent(new uw.Event('change', { bubbles: true }));
+  ok('тема включена', uw.document.getElementById('spp-dark')?.textContent === 'body{filter:invert(1)}' && uw.localStorage.getItem('spp:siteDark') === '1');
+
   console.log(`\n${passed} пройдено, ${failed} провалено`);
   process.exit(failed ? 1 : 0);
 })();

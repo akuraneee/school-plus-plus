@@ -3,12 +3,14 @@ package io.github.akuraneee.schoolsplusplus;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.Insets;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.WindowInsets;
 import android.webkit.CookieManager;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -40,10 +42,13 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         prefs = getSharedPreferences("spp", MODE_PRIVATE);
         userscript = readAsset("schools-plus-plus.user.js");
-        darkThemeJs = "(function(){if(document.getElementById('spp-dark'))return;"
-                + "var s=document.createElement('style');s.id='spp-dark';s.textContent="
-                + JSONObject.quote(readAsset("site-dark.css"))
-                + ";(document.head||document.documentElement).appendChild(s);})();";
+        // Тёмная тема сайта. Её можно выключить в панели Schools++ → «Настройки» (флаг spp:siteDark в localStorage),
+        // CSS кладём в window.__sppDarkCss, чтобы панель могла включить тему обратно без перезагрузки.
+        darkThemeJs = "(function(){window.__sppApp='android';window.__sppDarkCss=" + JSONObject.quote(readAsset("site-dark.css")) + ";"
+                + "try{if(localStorage.getItem('spp:siteDark')==='0')return;}catch(e){}"
+                + "if(document.getElementById('spp-dark'))return;"
+                + "var s=document.createElement('style');s.id='spp-dark';s.textContent=window.__sppDarkCss;"
+                + "(document.head||document.documentElement).appendChild(s);})();";
 
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(BG);
@@ -93,13 +98,26 @@ public class MainActivity extends Activity {
             }
 
             @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                // Прячем страницу, пока не применилась тёмная тема: иначе мигает белым, а WebView иногда
+                // оставляет на экране устаревший светлый кадр («пелену»), пока не коснёшься экрана.
+                if (isSchools(url)) hideUntilStyled();
+            }
+
+            @Override
             public void onPageCommitVisible(WebView view, String url) {
-                // Тёмная тема как можно раньше, чтобы не мигало белым.
-                if (isSchools(url)) view.evaluateJavascript(darkThemeJs, null);
+                if (isSchools(url)) view.evaluateJavascript(darkThemeJs, v -> reveal());
+                else reveal();
+            }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                if (request.isForMainFrame()) reveal();
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
+                reveal();
                 if (!isSchools(url)) return;
                 view.evaluateJavascript(darkThemeJs, null);
                 view.evaluateJavascript(userscript, null); // повторный запуск безопасен: кнопка не дублируется
@@ -113,6 +131,25 @@ public class MainActivity extends Activity {
             String last = prefs.getString("lastUrl", null);
             web.loadUrl(last != null && isSchools(last) ? last : START_URL);
         }
+    }
+
+    private void hideUntilStyled() {
+        web.animate().cancel();
+        web.setAlpha(0f);
+        web.removeCallbacks(revealFallback);
+        web.postDelayed(revealFallback, 1500); // на всякий случай: не оставить экран пустым
+    }
+
+    private final Runnable revealFallback = this::reveal;
+
+    private void reveal() {
+        web.removeCallbacks(revealFallback);
+        if (web.getAlpha() >= 1f) return;
+        // Кадр задержки, чтобы стиль успел примениться, затем плавное появление — это же и полная перерисовка.
+        web.postDelayed(() -> {
+            web.invalidate();
+            web.animate().alpha(1f).setDuration(120).start();
+        }, 32);
     }
 
     private static boolean isSchools(String url) {
