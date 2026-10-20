@@ -1,0 +1,18 @@
+/* Тёмная тема для schools.by (своей у сайта нет): инвертируем страницу, а картинки возвращаем как были.
+   Фильтр стоит на <body>, а панель Schools++ прикреплена к <html> — поэтому её он не задевает.
+   color-scheme: dark здесь ставить нельзя: текст станет белым, а после инверсии — тёмным на тёмном. */
+html {
+  background: #15181e !important;
+}
+body {
+  background: #fff !important;
+  filter: invert(0.9) hue-rotate(180deg) !important;
+}
+body img,
+body video,
+body iframe,
+body canvas,
+body picture,
+body [style*="background-image"] {
+  filter: invert(1) hue-rotate(180deg) !important;
+}

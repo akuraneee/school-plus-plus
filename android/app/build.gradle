@@ -1,0 +1,73 @@
+import groovy.json.JsonSlurper
+
+plugins {
+    id 'com.android.application'
+}
+
+// Версия приложения = версия расширения из manifest.json в корне репозитория.
+def repoRoot = rootProject.file('..')
+def appVersion = new JsonSlurper().parse(new File(repoRoot, 'manifest.json')).version as String
+def nums = appVersion.tokenize('.').collect { it as int }
+def code = nums[0] * 10000 + nums[1] * 100 + nums[2]
+
+// Скрипт и тёмная тема берутся из общей сборки (python3 build.py) — код один на все платформы.
+def userscript = new File(repoRoot, 'dist/schools-plus-plus.user.js')
+def darkCss = new File(repoRoot, 'app/site-dark.css')
+def generatedAssets = layout.buildDirectory.dir('generated/spp-assets').get().asFile
+
+// Подпись: постоянный ключ из переменных окружения (секреты GitHub), иначе — отладочный ключ.
+def keystore = System.getenv('ANDROID_KEYSTORE_FILE')
+
+android {
+    namespace 'io.github.akuraneee.schoolsplusplus'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'io.github.akuraneee.schoolsplusplus'
+        minSdk 26
+        targetSdk 35
+        versionCode code
+        versionName appVersion
+    }
+
+    signingConfigs {
+        release {
+            if (keystore) {
+                storeFile file(keystore)
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig keystore ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    sourceSets {
+        main {
+            assets.srcDirs += [generatedAssets]
+        }
+    }
+}
+
+tasks.register('copySppAssets', Copy) {
+    doFirst {
+        if (!userscript.exists()) {
+            throw new GradleException("Нет ${userscript}. Сначала выполните в корне репозитория: python3 build.py")
+        }
+    }
+    from(userscript)
+    from(darkCss)
+    into(generatedAssets)
+}
+tasks.named('preBuild') { dependsOn 'copySppAssets' }

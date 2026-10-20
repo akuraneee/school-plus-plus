@@ -1,0 +1,80 @@
+{
+  "name": "schools-plus-plus-desktop",
+  "productName": "Schools Plus Plus",
+  "version": "0.1.0",
+  "description": "Дневник schools.by со статистикой оценок и тёмной темой",
+  "author": "akuraneee",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "copy-ext": "node scripts/copy-extension.js",
+    "start": "npm run copy-ext && electron .",
+    "selftest": "npm run copy-ext && electron . --selftest",
+    "dist": "npm run copy-ext && electron-builder --publish never"
+  },
+  "devDependencies": {
+    "electron": "44.9.2",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "io.github.akuraneee.schoolsplusplus",
+    "productName": "Schools Plus Plus",
+    "artifactName": "schools-plus-plus-${os}-${arch}.${ext}",
+    "files": [
+      "main.js",
+      "site-dark.css",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "extension",
+        "to": "extension"
+      }
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "resources"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "shortcutName": "Schools++"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.education"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Education",
+      "syncDesktopName": true,
+      "executableName": "schools-plus-plus"
+    }
+  },
+  "desktopName": "schools-plus-plus.desktop"
+}

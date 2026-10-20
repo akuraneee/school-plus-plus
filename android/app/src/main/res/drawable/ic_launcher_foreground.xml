@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Столбики статистики, как на кнопке в панели. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M37,70h8v-20h-8z M50,70h8v-32h-8z M63,70h8v-14h-8z M33,73h42v4h-42z" />
+</vector>

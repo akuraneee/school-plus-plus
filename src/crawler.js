@@ -150,6 +150,7 @@
         let d = start;
         for (let i = 0; i < 15 && pages < MAX_PAGES_PER_QUARTER * 2; i++) {
           d = SPP.addDays(d, dir);
+          if (seen.has(weekUrl(d))) break; // уже загружали на шаге 1 — там уроков не было
           try {
             const { lessons } = await load(weekUrl(d));
             if (!lessons.length) break;
