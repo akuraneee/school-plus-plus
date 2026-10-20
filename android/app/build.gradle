@@ -8,7 +8,7 @@ plugins {
 def repoRoot = rootProject.file('..')
 def appVersion = new JsonSlurper().parse(new File(repoRoot, 'manifest.json')).version as String
 def nums = appVersion.tokenize('.').collect { it as int }
-def code = nums[0] * 10000 + nums[1] * 100 + nums[2]
+def code = nums[0] * 1000000 + nums[1] * 10000 + nums[2] // последнее число — номер сборки CI, до 9999
 
 // Скрипт и тёмная тема берутся из общей сборки (python3 build.py) — код один на все платформы.
 def userscript = new File(repoRoot, 'dist/schools-plus-plus.user.js')
